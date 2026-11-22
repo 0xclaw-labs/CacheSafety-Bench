@@ -15,10 +15,14 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
       - name: Vet
         run: go vet ./...
       - name: Build
         run: go build ./...
       - name: Test
-        run: go test ./...
+        # L1 加固：-p 2 压共享池编译内存峰值；-timeout 兜单包挂死；步骤帽兜
+        # 编译期挂死（GoBoost #1159 链接期挂 3h 先例）。cache:false=自托管
+        # 持久机远端 cache 只多上传（docs/ci/OPTIMIZATION-2026-10-14.md）。
+        timeout-minutes: 45
+        run: go test -p 2 -timeout 30m ./...
